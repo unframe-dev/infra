@@ -1,7 +1,6 @@
 # Unframe Cloudflare Infrastructure
 
-Cloudflare の既存 Zone に対する DNS、Workers Route、Workers Custom Domain を
-Terraform で宣言的に管理します。
+Cloudflare の既存 Zone に対する DNS、Workers Route、Workers Custom Domain をTerraform で宣言的に管理します。  
 
 ## 管理対象
 
@@ -12,11 +11,10 @@ Terraform で宣言的に管理します。
 | `cloudflare_workers_route.editor_root` | `un-fra.me/editor` | Editor の裸パス |
 | `cloudflare_workers_route.editor_subpath` | `un-fra.me/editor/*` | Editor の配下パス |
 | `cloudflare_workers_custom_domain.control_plane` | `api.un-fra.me` | Control Plane Worker の全パス |
+| `cloudflare_workers_custom_domain.mitou_slide` | `mitoujr.un-fra.me` | Mitou Slide Worker の全パス |
 
-> `un-fra.me` の LP と Editor は同じホストをパスで分割するため Route を使います。
-> 一方、`api.un-fra.me` は hostname 全体を Control Plane に渡すため Custom Domain を使います。Custom Domain の DNS / TLS レコードは Cloudflare が作成するため、`api` のDNS レコードは別途宣言しません。
-
-ドメインの購入、レジストラ、ネームサーバー変更そのものはこの構成の対象外です。
+> `un-fra.me` の LP と Editor は同じホストをパスで分割するため Route を使います。  
+> 一方、`api.un-fra.me` と `mitoujr.un-fra.me` は hostname 全体をそれぞれの Worker に渡すため Custom Domain を使います。Custom Domain の DNS / TLS レコードは Cloudflare が作成するため、これらのDNSレコードは別途宣言しません。  
 
 ## Nix で起動
 
@@ -47,10 +45,10 @@ Required API Token Permissions
 
 ## 既存リソースの取り込み
 
-この構成は、Dashboard または Wrangler で作成済みの5リソースを引き継ぐことを前提とします。
-いずれかを import せずに apply すると、重複作成や既存ルートとの競合が起きる可能性があります。
-Cloudflare Dashboard で各 ID と Worker 名を確認し、最初の apply より前に5件すべてを
-state へ import してください。
+この構成は、Dashboard または Wrangler で作成済みの5リソースを引き継ぎます。  
+`mitoujr.un-fra.me` のCustom Domainがまだ存在しない場合は、importせず初回applyで作成します。  
+既存リソースを import せずに apply すると、重複作成や既存ルートとの競合が起きる可能性があります。  
+Cloudflare Dashboard で各 ID と Worker 名を確認し、既存の5件を最初の apply より前にstate へ import してください。
 
 ```bash
 terraform import cloudflare_dns_record.apex_worker '<zone-id>/<dns-record-id>'
@@ -60,32 +58,25 @@ terraform import cloudflare_workers_route.editor_subpath '<zone-id>/<route-id>'
 terraform import cloudflare_workers_custom_domain.control_plane '<account-id>/<domain-id>'
 ```
 
-取り込み後は state に5件が揃っていることを確認します。
+`mitoujr.un-fra.me` のCustom DomainをDashboardなどで先に作成済みの場合は、次もimportします。
+
+```bash
+terraform import cloudflare_workers_custom_domain.mitou_slide '<account-id>/<domain-id>'
+```
+
+既存5件の取り込み後は state に5件が揃っていることを確認します。新しいCustom Domainを
+Terraformで作成する場合、planでは6件目のcreateとして表示されます。
 
 ```bash
 terraform state list
 terraform plan
 ```
 
-`terraform state list` に上記5アドレスがすべて存在し、plan に意図しない create、replace、
-destroy がないことを確認してください。`pattern`、Worker 名、`proxied`、TTL、Custom Domain の
-hostname に差分がある場合は、remote の実値と構成のどちらが正しいかを確認するまで apply
-しないでください。既存リソースが見つからず import できない場合も同様に作業を止め、
-新規作成してよいことを確認してから進めます。
-
 確認済みの差分だけを反映する場合に限り、次を実行します。
 
 ```bash
 terraform apply
 ```
-
-## State の運用制約
-
-現在は remote backend を構成していないため、Terraform はこのディレクトリの local state を
-使用します。state は Git 管理せず、安全な場所にバックアップし、同時に複数の端末や担当者から
-操作しないでください。state を失うと既存リソースとの対応関係も失われるため、削除や再生成では
-なく復元を優先します。複数人や CI から運用する段階では、locking を備えた remote backend への
-移行を別途設計してください。
 
 ## 既存の Wrangler 設定との境界
 

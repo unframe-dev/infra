@@ -37,6 +37,12 @@ variable "control_plane_worker_name" {
   default     = "unframe-control-plane"
 }
 
+variable "mitou_slide_worker_name" {
+  description = "Existing Worker service name for the Mitou Slide site."
+  type        = string
+  default     = "mitou-slide"
+}
+
 variable "worker_origin_ipv6" {
   description = "Cloudflare reserved IPv6 origin used by route-based Workers."
   type        = string

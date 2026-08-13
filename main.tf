@@ -60,3 +60,10 @@ resource "cloudflare_workers_custom_domain" "control_plane" {
   service    = var.control_plane_worker_name
   zone_id    = data.cloudflare_zone.main.id
 }
+
+resource "cloudflare_workers_custom_domain" "mitou_slide" {
+  account_id = var.cloudflare_account_id
+  hostname   = "mitoujr.${var.zone_name}"
+  service    = var.mitou_slide_worker_name
+  zone_id    = data.cloudflare_zone.main.id
+}
