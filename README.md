@@ -46,7 +46,6 @@ Required API Token Permissions
 ## 既存リソースの取り込み
 
 この構成は、Dashboard または Wrangler で作成済みの5リソースを引き継ぎます。  
-`mitoujr.un-fra.me` のCustom Domainがまだ存在しない場合は、importせず初回applyで作成します。  
 既存リソースを import せずに apply すると、重複作成や既存ルートとの競合が起きる可能性があります。  
 Cloudflare Dashboard で各 ID と Worker 名を確認し、既存の5件を最初の apply より前にstate へ import してください。
 
@@ -56,11 +55,6 @@ terraform import cloudflare_workers_route.lp '<zone-id>/<route-id>'
 terraform import cloudflare_workers_route.editor_root '<zone-id>/<route-id>'
 terraform import cloudflare_workers_route.editor_subpath '<zone-id>/<route-id>'
 terraform import cloudflare_workers_custom_domain.control_plane '<account-id>/<domain-id>'
-```
-
-`mitoujr.un-fra.me` のCustom DomainをDashboardなどで先に作成済みの場合は、次もimportします。
-
-```bash
 terraform import cloudflare_workers_custom_domain.mitou_slide '<account-id>/<domain-id>'
 ```
 
