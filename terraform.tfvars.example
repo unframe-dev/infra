@@ -1,0 +1,5 @@
+# This is an identifier, not a secret. Verify it against the target
+# Cloudflare account before importing or applying resources.
+cloudflare_account_id = "5e51990fc7286bc6106950b1617361c9"
+
+zone_name = "un-fra.me"
