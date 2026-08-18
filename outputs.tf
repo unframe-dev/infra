@@ -16,8 +16,14 @@ output "mitou_slide_hostname" {
 output "managed_routes" {
   description = "Worker routes managed by Terraform."
   value = {
-    lp             = cloudflare_workers_route.lp.pattern
-    editor_root    = cloudflare_workers_route.editor_root.pattern
-    editor_subpath = cloudflare_workers_route.editor_subpath.pattern
+    lp_root           = cloudflare_workers_route.lp_root.pattern
+    lp_news           = cloudflare_workers_route.lp_news.pattern
+    lp_news_subpath   = cloudflare_workers_route.lp_news_subpath.pattern
+    lp_docs           = cloudflare_workers_route.lp_docs.pattern
+    lp_docs_subpath   = cloudflare_workers_route.lp_docs_subpath.pattern
+    lp_app_assets     = cloudflare_workers_route.lp_app_assets.pattern
+    lp_brand_assets   = cloudflare_workers_route.lp_brand_assets.pattern
+    lp_favicon_assets = cloudflare_workers_route.lp_favicon_assets.pattern
+    editor_fallback   = cloudflare_workers_route.editor_fallback.pattern
   }
 }

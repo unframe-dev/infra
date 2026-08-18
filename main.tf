@@ -33,23 +33,117 @@ resource "cloudflare_dns_record" "apex_worker" {
   ttl     = 1
 }
 
-# The LP owns the broad route. More specific Editor routes take precedence.
-resource "cloudflare_workers_route" "lp" {
+# Resend authenticates noreply@un-fra.me with DKIM and a dedicated MAIL FROM
+# subdomain. DMARC starts in monitoring mode until delivery is verified.
+resource "cloudflare_dns_record" "resend_dkim" {
   zone_id = data.cloudflare_zone.main.id
-  pattern = "${var.zone_name}/*"
+  name    = "resend._domainkey"
+  type    = "TXT"
+  content = "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDNCkGWoPIXb1O3eI5ro0WsW0ZRH44pclQoAXHhUBieGYonlpkzK3kU2GcR6azI9H0nqvezFkk3uFeWgOaAiMS9FVqCTIpBw5eXS/c9TF9/aNH+eaRsHavZejFHNBWnel9B4zywr526EMDdhMxo3LrAt68vMY4p5NK4T5z/wC5t9wIDAQAB"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "resend_mail_from_mx" {
+  zone_id  = data.cloudflare_zone.main.id
+  name     = "send"
+  type     = "MX"
+  content  = "feedback-smtp.ap-northeast-1.amazonses.com"
+  priority = 10
+  proxied  = false
+  ttl      = 1
+}
+
+resource "cloudflare_dns_record" "resend_mail_from_spf" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "send"
+  type    = "TXT"
+  content = "v=spf1 include:amazonses.com ~all"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "resend_dmarc" {
+  zone_id = data.cloudflare_zone.main.id
+  name    = "_dmarc"
+  type    = "TXT"
+  content = "v=DMARC1; p=none;"
+  proxied = false
+  ttl     = 1
+}
+
+# LP is an allowlist on the apex hostname. The Editor fallback below owns
+# every path that is not explicitly reserved for the LP.
+resource "cloudflare_workers_route" "lp_root" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = var.zone_name
   script  = var.lp_worker_name
 }
 
-resource "cloudflare_workers_route" "editor_root" {
+resource "cloudflare_workers_route" "lp_news" {
   zone_id = data.cloudflare_zone.main.id
-  pattern = "${var.zone_name}/editor"
+  pattern = "${var.zone_name}/news"
+  script  = var.lp_worker_name
+}
+
+resource "cloudflare_workers_route" "lp_news_subpath" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/news/*"
+  script  = var.lp_worker_name
+}
+
+resource "cloudflare_workers_route" "lp_docs" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/docs"
+  script  = var.lp_worker_name
+}
+
+resource "cloudflare_workers_route" "lp_docs_subpath" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/docs/*"
+  script  = var.lp_worker_name
+}
+
+resource "cloudflare_workers_route" "lp_app_assets" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/_app/*"
+  script  = var.lp_worker_name
+}
+
+resource "cloudflare_workers_route" "lp_brand_assets" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/brand/*"
+  script  = var.lp_worker_name
+}
+
+resource "cloudflare_workers_route" "lp_favicon_assets" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/favicon/*"
+  script  = var.lp_worker_name
+}
+
+# The root-based Editor owns every path not reserved by the LP routes above.
+resource "cloudflare_workers_route" "editor_fallback" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/*"
   script  = var.editor_worker_name
 }
 
-resource "cloudflare_workers_route" "editor_subpath" {
-  zone_id = data.cloudflare_zone.main.id
-  pattern = "${var.zone_name}/editor/*"
-  script  = var.editor_worker_name
+# Preserve the existing route state during the topology migration. The old
+# route IDs are updated in place instead of being recreated as duplicates.
+moved {
+  from = cloudflare_workers_route.lp
+  to   = cloudflare_workers_route.editor_fallback
+}
+
+moved {
+  from = cloudflare_workers_route.editor_root
+  to   = cloudflare_workers_route.lp_root
+}
+
+moved {
+  from = cloudflare_workers_route.editor_subpath
+  to   = cloudflare_workers_route.lp_news
 }
 
 # Unlike a route, a Custom Domain owns every path on its hostname and
