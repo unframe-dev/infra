@@ -53,3 +53,27 @@ variable "worker_origin_ipv6" {
     error_message = "worker_origin_ipv6 must be a valid IPv6 address."
   }
 }
+
+variable "realtime_origin_ipv4" {
+  description = "Public IPv4 address of the Realtime Caddy origin. Null disables its A record."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.realtime_origin_ipv4 == null || can(cidrnetmask("${var.realtime_origin_ipv4}/32"))
+    error_message = "realtime_origin_ipv4 must be null or a valid IPv4 address without a CIDR prefix."
+  }
+}
+
+variable "realtime_origin_ipv6" {
+  description = "Public IPv6 address of the Realtime Caddy origin. Null disables its AAAA record."
+  type        = string
+  default     = null
+
+  validation {
+    condition = var.realtime_origin_ipv6 == null || (
+      can(regex(":", var.realtime_origin_ipv6)) && can(cidrhost("${var.realtime_origin_ipv6}/128", 0))
+    )
+    error_message = "realtime_origin_ipv6 must be null or a valid IPv6 address without a CIDR prefix."
+  }
+}

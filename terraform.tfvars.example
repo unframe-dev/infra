@@ -3,3 +3,7 @@
 cloudflare_account_id = "5e51990fc7286bc6106950b1617361c9"
 
 zone_name = "un-fra.me"
+
+# Set each public address after the Realtime origin is reachable over that family.
+realtime_origin_ipv4 = null
+realtime_origin_ipv6 = null
