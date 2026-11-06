@@ -36,6 +36,18 @@ resource "cloudflare_workers_route" "lp_app_assets" {
   script  = var.lp_worker_name
 }
 
+resource "cloudflare_workers_route" "lp_demo" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/demo"
+  script  = var.lp_worker_name
+}
+
+resource "cloudflare_workers_route" "lp_demo_subpath" {
+  zone_id = data.cloudflare_zone.main.id
+  pattern = "${var.zone_name}/demo/*"
+  script  = var.lp_worker_name
+}
+
 resource "cloudflare_workers_route" "lp_brand_assets" {
   zone_id = data.cloudflare_zone.main.id
   pattern = "${var.zone_name}/brand/*"

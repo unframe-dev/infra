@@ -18,6 +18,8 @@ Cloudflare の既存 Zone に対する DNS、Workers Route、Workers Custom Doma
 | `cloudflare_workers_route.lp_news_subpath` | `un-fra.me/news/*` | LP の News 記事 |
 | `cloudflare_workers_route.lp_docs` | `un-fra.me/docs` | LP の Docs トップ |
 | `cloudflare_workers_route.lp_docs_subpath` | `un-fra.me/docs/*` | LP の Docs 記事 |
+| `cloudflare_workers_route.lp_demo` | `un-fra.me/demo` | LP のデモページ |
+| `cloudflare_workers_route.lp_demo_subpath` | `un-fra.me/demo/*` | LP の末尾スラッシュ付きデモ URL と配下 |
 | `cloudflare_workers_route.lp_app_assets` | `un-fra.me/_app/*` | SvelteKit の静的アセット |
 | `cloudflare_workers_route.lp_brand_assets` | `un-fra.me/brand/*` | LP のブランドアセット |
 | `cloudflare_workers_route.lp_favicon_assets` | `un-fra.me/favicon/*` | LP のfavicon |
